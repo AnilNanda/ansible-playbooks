@@ -2,17 +2,30 @@
 - hosts: localhost
   connection: local
   tasks:
+  - name: Create role for ECS Taskdef
+    iam_role:
+      name: ecsTaskDefRole
+      managed_policy: arn:aws:iam::aws:policy/CloudWatchFullAccess
+      assume_role_policy_document: "{{ lookup('file','taskdefpolicy.json') }}"
+    register: iam_role
+  - name: Create cloudwatch log group
+    cloudwatchlogs_log_group:
+      log_group_name: /ecs/httpd
+      region: ap-southeast-1
+    ignore_errors: true
+
   - name: Define task defifnition
     ecs_taskdefinition:
       family: httpdTaskDef
+      execution_role_arn: '{{iam_role["arn"]}}'
       containers:
         - name: httpdcontainer
           cpu: 1
-          image: "httpd:2.4"
+          image: "httpd"
           memory: 128
           portMappings:
           - containerPort: 80
-            hostPort: 0
+            hostPort: 80
           logConfiguration:
             logDriver: awslogs
             options:

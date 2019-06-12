@@ -11,6 +11,7 @@
       region: ap-southeast-1
       state: present
     register: elb_target_group_out
+  - debug: var=elb_target_group_out["target_group_arn"]
   - name: Create SG for ELB
     ec2_group:
       name: ECS-ELB-sg
@@ -41,16 +42,6 @@
               TargetGroupName: '{{elb_target_group_out["target_group_name"]}}'
       region: ap-southeast-1
       state: present
+    register: elb_application_lb_out
+  - debug: var=elb_application_lb_out
 
-  - name: Define Service
-    ecs_service:
-      name: httpd-service
-      state: present
-      region: ap-southeast-1
-      load_balancers: 
-        - targetGroupArn: '{{elb_target_group_out["target_group_arn"]}}'
-          containerName: httpdcontainer
-          containerPort: 80
-      cluster: ecs_ansible_cluster
-      task_definition: httpdTaskDef
-      desired_count: 2
