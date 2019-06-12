@@ -1,0 +1,18 @@
+---
+- hosts: localhost
+  connection: local
+  tasks:
+  - name: Create SG for cluster instance
+    ec2_group:
+      name: ecs_node_sg
+      vpc_id: vpc-7d370a1a
+      region: ap-southeast-1
+      description: test-ecs-sg
+      rules:
+      - proto: tcp
+        ports:
+        - 80
+        cidr_ip: 0.0.0.0/0
+        rule_desc: allow all on port 80
+    register: sg_group
+  - debug: var=sg_group["group_id"]

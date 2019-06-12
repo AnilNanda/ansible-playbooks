@@ -1,0 +1,12 @@
+---
+- hosts: localhost
+  connection: local
+  tasks:
+  - name: Create role for "{{ecs_out["cluster"]["clusterName"]}}" instances
+    iam_role:
+      name: "{{ecs_out}}-ECS-Instance-Role"
+      managed_policy: arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+      assume_role_policy_document: "{{ lookup('file','policy.json') }}"
+    register: iam_role
+  - debug: var=iam_role["arn"]
+

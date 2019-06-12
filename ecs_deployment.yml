@@ -1,0 +1,56 @@
+---
+- hosts: localhost
+  connection: local
+  tasks:
+  - name: Create empty ECS cluster
+    ecs_cluster:
+      name: ecs_ansible_cluster
+      region: ap-southeast-1
+      state: present
+    register: ecs_out
+  - name: print ecs out
+    debug: 
+      var: ecs_out["cluster"]["clusterName"]
+  - name: Create role for '{{ecs_out["cluster"]["clusterName"]}}' instances
+    iam_role:
+      name: '{{ecs_out["cluster"]["clusterName"]}}-ECS-Instance-Role'
+      managed_policy: arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+      assume_role_policy_document: "{{ lookup('file','policy.json') }}"
+    register: iam_role
+  - name: Create SG for cluster instance
+    ec2_group:
+      name: '{{ecs_out["cluster"]["clusterName"]}}-node-sg'
+      vpc_id: vpc-7d370a1a
+      description: 'node sg for {{ecs_out["cluster"]["clusterName"]}}'
+      region: ap-southeast-1
+      rules:
+      - proto: tcp
+        ports:
+        - 80
+        cidr_ip: 0.0.0.0/0
+        rule_desc: allow all on port 80
+    register: sg_group
+  
+  - name: Create launch config for ecs cluster instances
+    ec2_lc:
+      name: '{{ecs_out["cluster"]["clusterName"]}}-LaunchConfig'
+      image_id: ami-00f596fcbda0cebcc
+      instance_profile_name: '{{ecs_out["cluster"]["clusterName"]}}-ECS-Instance-Role'
+      region: ap-southeast-1
+      security_groups: '{{sg_group["group_id"]}}'
+      key_name: singaporekey
+      instance_type: t2.micro
+      user_data: |
+                   #!/bin/bash
+                   echo ECS_CLUSTER="{{ecs_out["cluster"]["clusterName"]}}" >> /etc/ecs/ecs.config
+  - name: "Auto Scaling Group"
+    ec2_asg:
+      name: '{{ecs_out["cluster"]["clusterName"]}}-AutoScalingGroup'
+      launch_config_name: '{{ecs_out["cluster"]["clusterName"]}}-LaunchConfig'
+      health_check_period: 60
+      health_check_type: EC2
+      replace_all_instances: yes
+      min_size: 1
+      max_size: 1
+      desired_capacity: 1
+      region: ap-southeast-1

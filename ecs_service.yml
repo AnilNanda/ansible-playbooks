@@ -1,0 +1,12 @@
+---
+- hosts: localhost
+  connection: local
+  tasks:
+  - name: Define Service
+    ecs_service:
+      name: httpd-service
+      state: present
+      region: ap-southeast-1
+      cluster: ecs_ansible_cluster
+      task_definition: httpdTaskDef
+      desired_count: 2
