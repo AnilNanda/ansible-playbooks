@@ -1,0 +1,9 @@
+---
+- hosts: localhost
+  connection: local
+  tasks:
+  - name: Terminate ec2
+    ec2:
+     state: absent
+     region: ap-southeast-1
+     instance_id: "{{instance_id}}"
