@@ -9,7 +9,7 @@
       image: ami-0b5a47f8865280111
       wait: yes
       count: 1
-      vpc_subnet_id: subnet-2f1cfa49
+      vpc_subnet_id: subnet-2f1cfa42
       assign_public_ip: yes
       region: ap-southeast-1
 
