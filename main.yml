@@ -1,0 +1,10 @@
+---
+- hosts: all
+  become: true
+  vars:
+    package: "apache2"
+  tasks:
+  - name: install nginx
+    apt:
+      name: "{{ package }}"
+      state: absent
