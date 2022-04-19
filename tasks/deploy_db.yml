@@ -1,0 +1,27 @@
+---
+- name: install MYSQL DB
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - mysql-server
+    - mysql-client
+
+- name: Start MYSQL start
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+
+- name: Create Application DB
+  mysql_db:
+    name: employee_db
+    state: present
+
+- name: Create DB user
+  mysql_user:
+    name: db_user
+    password: Passw0rd
+    priv: '*.*:ALL'
+    state: present
+
